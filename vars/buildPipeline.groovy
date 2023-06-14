@@ -105,10 +105,10 @@ def call(Closure body) {
                             expression { publish == true && helper.hasNoFailures()}
                         }
                         steps {
-							// Deploy jars in maven repository and images in registry
-                            echo "We don't deloy yet, do a local install"
-                            //sh "mvn -B deploy -DskipTests=true"
-                            sh "mvn -B install -DskipTests=true"
+			   // Deploy jars in maven repository and images in registry
+                            //echo "We don't deloy yet, do a local install"
+                            sh "mvn -B deploy -DskipTests=true"
+                            //sh "mvn -B install -DskipTests=true"
                         }
                     }
 
