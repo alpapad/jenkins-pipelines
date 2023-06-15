@@ -43,14 +43,14 @@ def call(Closure body) {
                         snapshot = helper.isSnapshot();
                         publish = helper.isPublish();
                         
-						// next devel version with -SNAPSHOT
+			// next devel version with -SNAPSHOT
                         nextDevelVersion = helper.getNextVersion()
-						// version without -SNAPSHOT (if any)
+			// version without -SNAPSHOT (if any)
                         nextReleaseVersion = helper.getReleaseVersion()
 
-						// check if we should skip this build
+			// check if we should skip this build
                         skip = helper.isSkip();
-						// sonar related 
+			// sonar related 
                         sonarProject = helper.getSonarProject()
                         sonarProjectName = helper.getSonarProjectId();
                         if(pipelineParams.ignoreSonarErrors != null){
@@ -134,11 +134,11 @@ def call(Closure body) {
                                     sh "git ls-files -m | grep pom.xml  | xargs git add"
                                     sh "git commit -m \"${bumpMsg}\" --allow-empty"
                                     //sh "git push origin HEAD:develop --tags"
-									sh "git push origin HEAD --tags"
-									//git push origin HEAD:refs/tags/alex2
+				    sh "git push origin HEAD:master --tags"
+				    //git push origin HEAD:refs/tags/alex2
                                 }
-								// Update relevant jira issues with fix versions and build versions
-								helper.updateJira(jiraProject,nextReleaseVersion)
+				// Update relevant jira issues with fix versions and build versions
+				helper.updateJira(jiraProject,nextReleaseVersion)
                             }
                         }
                     }
