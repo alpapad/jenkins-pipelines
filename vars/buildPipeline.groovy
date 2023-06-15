@@ -134,7 +134,7 @@ def call(Closure body) {
                                     sh "git ls-files -m | grep pom.xml  | xargs git add"
                                     sh "git commit -m \"${bumpMsg}\" --allow-empty"
                                     //sh "git push origin HEAD:develop --tags"
-				    sh "git push origin HEAD:master --tags"
+				    sh "git push origin HEAD -f --tags"
 				    //git push origin HEAD:refs/tags/alex2
                                 }
 				// Update relevant jira issues with fix versions and build versions
