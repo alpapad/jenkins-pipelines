@@ -124,7 +124,7 @@ def call(Closure body) {
                                     sh "git ls-files -m | grep pom.xml  | xargs git add"
                                     sh "git commit -m \"${bumpMsg}\" --allow-empty"
                                     //sh "git push origin HEAD:develop --tags"
-				    sh "git push origin HEAD -f --tags"
+			 	    sh "git push origin HEAD -f --tags"
 				    //git push origin HEAD:refs/tags/alex2
                                 }
 				// Update relevant jira issues with fix versions and build versions
@@ -133,18 +133,18 @@ def call(Closure body) {
                         }
                     }
                 }
-                    stage('Publish') {
+            }
+            stage('Publish') {
                         when {
                             expression { publish == true && helper.hasNoFailures()}
                         }
                         steps {
-			   // Deploy jars in maven repository and images in registry
+               // Deploy jars in maven repository and images in registry
                            //echo "We don't deloy yet, do a local install"
                            sh "mvn -B deploy -DskipTests=true"
                            //sh "mvn -B install -DskipTests=true"
                         }
-                    }
-            }
+           }
         }
     }
     
