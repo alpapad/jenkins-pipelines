@@ -37,20 +37,20 @@ def call(Closure body) {
             stage('Init') {
                 steps {
                     script {
-						helper.init()
+                        helper.init()
 
                         release = helper.isRelease();
                         snapshot = helper.isSnapshot();
                         publish = helper.isPublish();
                         
-			// next devel version with -SNAPSHOT
+                        // next devel version with -SNAPSHOT
                         nextDevelVersion = helper.getNextVersion()
-			// version without -SNAPSHOT (if any)
+                        // version without -SNAPSHOT (if any)
                         nextReleaseVersion = helper.getReleaseVersion()
 
-			// check if we should skip this build
+                        // check if we should skip this build
                         skip = helper.isSkip();
-			// sonar related 
+                        // sonar related 
                         sonarProject = helper.getSonarProject()
                         sonarProjectName = helper.getSonarProjectId();
                         if(pipelineParams.ignoreSonarErrors != null){
@@ -71,7 +71,7 @@ def call(Closure body) {
                             expression { release == true }
                         }
                         steps {
-							// Remove -SNAPSHOT from poms as this is a release 
+                            // Remove -SNAPSHOT from poms as this is a release 
                             sh "mvn -B versions:set versions:set-property -Dproperty=revision -DgenerateBackupPoms=false -DnewVersion=${nextReleaseVersion} -DprocessAllModules=true -Pittests -Pcicd"
                         }
                     }
@@ -101,6 +101,23 @@ def call(Closure body) {
                     }
 
 
+                    stage('Publish') {
+                        when {
+                            expression { publish == true && helper.hasNoFailures()}
+                        }
+                        steps {
+                           script {
+                               // Deploy jars in maven repository and images in registry
+                               //echo "We don't deloy yet, do a local install"
+                               try {
+                                    sh "mvn -B deploy -DskipTests=true"
+                               } catch (Exception e) {
+                                    echo e.getMessage()
+                               }
+                               //sh "mvn -B install -DskipTests=true"
+                           }
+                        }
+                    }
 
                     stage("Release") {
                         when {
@@ -111,40 +128,29 @@ def call(Closure body) {
                                 releaseMsg  = helper.getReleaseMessage(nextReleaseVersion);
                                 bumpMsg  = helper.geBumpMessage(nextDevelVersion);
                                 currentBuild.displayName = "v" + nextReleaseVersion +  " (" + currentBuild.number + ")"
-								
+
                                 sh 'git config advice.addEmptyPathspec false'
-								
+
                                 withCredentials([gitUsernamePassword(credentialsId: 'alpapad-jenkins-ap', gitToolName: 'Default')]) {
                                     sh "git ls-files -m | grep pom.xml  | xargs git add"
                                     sh "git commit -m \"${releaseMsg}\" --allow-empty"
                                     sh "git tag -f -a v${nextReleaseVersion} -m \"${releaseMsg}\""
-									
+
                                     sh "mvn -B versions:set versions:set-property -Dproperty=revision -DgenerateBackupPoms=false -DnewVersion=${nextDevelVersion} -DprocessAllModules=true -Pittests -Pcicd"
     
                                     sh "git ls-files -m | grep pom.xml  | xargs git add"
                                     sh "git commit -m \"${bumpMsg}\" --allow-empty"
                                     //sh "git push origin HEAD:develop --tags"
-			 	    sh "git push origin HEAD -f --tags"
-				    //git push origin HEAD:refs/tags/alex2
+                                    sh "git push origin HEAD -f --tags"
+                                    //git push origin HEAD:refs/tags/alex2
                                 }
-				// Update relevant jira issues with fix versions and build versions
-				helper.updateJira(jiraProject,nextReleaseVersion)
+                                // Update relevant jira issues with fix versions and build versions
+                                helper.updateJira(jiraProject,nextReleaseVersion)
                             }
                         }
                     }
                 }
             }
-            stage('Publish') {
-                        when {
-                            expression { publish == true && helper.hasNoFailures()}
-                        }
-                        steps {
-               // Deploy jars in maven repository and images in registry
-                           //echo "We don't deloy yet, do a local install"
-                           sh "mvn -B deploy -DskipTests=true"
-                           //sh "mvn -B install -DskipTests=true"
-                        }
-           }
         }
     }
     
