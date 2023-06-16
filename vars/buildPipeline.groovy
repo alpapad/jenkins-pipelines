@@ -100,17 +100,7 @@ def call(Closure body) {
                         }
                     }
 
-                    stage('Publish') {
-                        when {
-                            expression { publish == true && helper.hasNoFailures()}
-                        }
-                        steps {
-			   // Deploy jars in maven repository and images in registry
-                           //echo "We don't deloy yet, do a local install"
-                           sh "mvn -B deploy -DskipTests=true"
-                           //sh "mvn -B install -DskipTests=true"
-                        }
-                    }
+
 
                     stage("Release") {
                         when {
@@ -143,6 +133,17 @@ def call(Closure body) {
                         }
                     }
                 }
+                    stage('Publish') {
+                        when {
+                            expression { publish == true && helper.hasNoFailures()}
+                        }
+                        steps {
+			   // Deploy jars in maven repository and images in registry
+                           //echo "We don't deloy yet, do a local install"
+                           sh "mvn -B deploy -DskipTests=true"
+                           //sh "mvn -B install -DskipTests=true"
+                        }
+                    }
             }
         }
     }
