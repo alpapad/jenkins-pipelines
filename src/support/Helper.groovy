@@ -41,7 +41,7 @@ class Helper implements Serializable {
 	}
 
 	boolean isRelease(){
-		return (this.script.env.BRANCH_NAME == "develop" || this.script.env.BRANCH_NAME == "master" || this.script.env.BRANCH_NAME == "hotfix")
+		return (this.script.env.BRANCH_NAME == "develop" || this.script.env.BRANCH_NAME == "master" || this.script.env.BRANCH_NAME == "hotfix" || this.script.env.BRANCH_NAME.startsWith("release/"))
 	}
 
 	boolean isPublish(){
