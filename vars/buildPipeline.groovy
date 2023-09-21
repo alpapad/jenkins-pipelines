@@ -119,9 +119,15 @@ def call(Closure body) {
                                         sh "mvn -B verify -pl testing/smg-it-tests -am -Dmaven.test.failure.ignore=true -Ddependency-check.skip=true -Pit-tests -Pcicd -Dspring.profiles.active=jenkins"
                                         helper.junitReport()
                                     } finally {
+                                        // stop mta and force code coverage info to be written
+                                        sh "docker compose stop mta"
+                                        sh "docker compose cp cwp-mock:/jacoco/jacoco.exec ./filter/target/jacoco.exec | true"
+                                        
+                                        
                                         sh "docker compose down | true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
+                                        sh "mvn -B jacoco:report-aggregate"
                                     }
                                 }
                             }
