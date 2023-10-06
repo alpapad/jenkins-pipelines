@@ -29,7 +29,7 @@ def call(Closure body) {
         agent any
         tools { 
             maven 'MVN' 
-            jdk 'JDK11' 
+            jdk 'JDK17' 
         }
         options {
             disableConcurrentBuilds()
