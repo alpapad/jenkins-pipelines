@@ -110,16 +110,16 @@ def call(Closure body) {
                             lock('tests') {
                                 script {
                                     try {
-                                        sh "docker compose down | true"
+                                        sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
                                         sh "mvn install -Pdocker-build -DskipTests=true"
                                         sh "SPRING_PROFILES=docker,jenkins docker compose up -d"
-                                        sleep(60)
+                                        sleep(90)
                                         sh "mvn -B verify -pl testing/smg-it-tests -am -Dmaven.test.failure.ignore=true -Ddependency-check.skip=true -Pit-tests -Pcicd -Dspring.profiles.active=jenkins"
                                         helper.junitReport()
                                     } finally {
-                                        sh "docker compose down | true"
+                                        sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
                                     }
@@ -150,7 +150,7 @@ def call(Closure body) {
                                // Deploy jars in maven repository and images in registry
                                //echo "We don't deloy yet, do a local install"
                                try {
-                                    sh "mvn -B deploy -DskipTests=true"
+                                    sh "mvn -B deploy -DskipTests=true -Pdocker-build"
                                } catch (Exception e) {
                                     echo e.getMessage()
                                }
