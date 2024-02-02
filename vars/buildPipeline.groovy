@@ -32,7 +32,7 @@ def call(Closure body) {
             jdk 'JDK11' 
         }
         options {
-            disableConcurrentBuilds()
+            disableConcurrentBuilds(abortPrevious: true)
             buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '5'))
             office365ConnectorWebhooks([[
                 startNotification: true,
