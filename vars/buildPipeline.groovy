@@ -13,7 +13,9 @@ def call(Closure body) {
     def release = false;
     def publish = false;
     def snapshot = false;
+    def pr = false;
     def skip = false;
+    def runSonar = true;
     def sonarProject = "";
     def projectName = pipelineParams.name;
 	def jiraProject = pipelineParams.jiraProject;
@@ -32,6 +34,15 @@ def call(Closure body) {
         options {
             disableConcurrentBuilds(abortPrevious: true)
             buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '5'))
+            office365ConnectorWebhooks([[
+                startNotification: true,
+                notifySuccess: true,
+                notifyAborted: true,
+                notifyNotBuilt: true,
+                notifyUnstable: true,
+                notifyFailure: true,
+                notifyBackToNormal: true
+            ]])
         }
         stages {
             stage('Init') {
@@ -42,6 +53,7 @@ def call(Closure body) {
                         release = helper.isRelease();
                         snapshot = helper.isSnapshot();
                         publish = helper.isPublish();
+                        pr = helper.isPr();
                         
                         // next devel version with -SNAPSHOT
                         nextDevelVersion = helper.getNextVersion()
@@ -78,17 +90,47 @@ def call(Closure body) {
 
                     stage('Build and Test') {
                         steps {
-                            script{
-                                def extraBuildArgs = ""
-                                if (fileExists('suppressions.xml')) {
-                                    extraBuildArgs += " -DsuppressionFile=suppressions.xml"
+                            lock('tests') {
+                                script{
+                                    def extraBuildArgs = ""
+                                    if (fileExists('suppressions.xml')) {
+                                        extraBuildArgs += " -DsuppressionFile=suppressions.xml"
+                                    }
+                                    sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
+                                    helper.junitReport()
                                 }
-                                sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
-                                helper.testReport()
+                            }
+                        }
+                    }
+                    stage('Run component tests') {
+                        when {
+                            expression { pr == false }
+                        }
+                        steps {
+                            lock('tests') {
+                                script {
+                                    try {
+                                        sh "docker compose down -v| true"
+                                        sh "docker compose rm | true"
+                                        sh "docker volume prune -a -f | true"
+                                        sh "mvn clean install -Pdocker-build -DskipTests=true"
+                                        sh "SPRING_PROFILES=docker,jenkins docker compose up -d"
+                                        sleep(90)
+                                        sh "mvn -B verify -pl testing/smg-it-tests -am -Dmaven.test.failure.ignore=true -Ddependency-check.skip=true -Pit-tests -Pcicd -Dspring.profiles.active=jenkins"
+                                        helper.junitReport()
+                                    } finally {
+                                        sh "docker compose down -v| true"
+                                        sh "docker compose rm | true"
+                                        sh "docker volume prune -a -f | true"
+                                    }
+                                }
                             }
                         }
                     }
                     stage('SonarQube analysis') {
+                        when {
+                            expression { runSonar == true }
+                        }
                         steps {
                              script {
                                 withSonarQubeEnv('sonar') {
@@ -99,8 +141,6 @@ def call(Closure body) {
                             }
                         }
                     }
-
-
                     stage('Publish') {
                         when {
                             expression { publish == true && helper.hasNoFailures()}
@@ -110,7 +150,7 @@ def call(Closure body) {
                                // Deploy jars in maven repository and images in registry
                                //echo "We don't deloy yet, do a local install"
                                try {
-                                    sh "mvn -B deploy -DskipTests=true"
+                                    sh "mvn -B deploy -DskipTests=true -Pdocker-build"
                                } catch (Exception e) {
                                     echo e.getMessage()
                                }
@@ -146,9 +186,17 @@ def call(Closure body) {
                                 }
                                 // Update relevant jira issues with fix versions and build versions
                                 helper.updateJira(jiraProject,nextReleaseVersion)
+                                office365ConnectorSend message:"Released: SMG ${nextReleaseVersion}(${env.BUILD_NUMBER}) (<${env.BUILD_URL}|Open>) ${releaseMsg}" 
                             }
                         }
                     }
+                }
+            }
+        }
+        post {
+            always {
+                script {
+                    helper.testReport()
                 }
             }
         }

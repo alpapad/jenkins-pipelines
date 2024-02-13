@@ -131,6 +131,11 @@ class Helper implements Serializable {
 		}
 	}
 
+    def junitReport(){
+        this.script.junit checksName: 'Unit tests', allowEmptyResults: true, skipMarkingBuildUnstable: false, testResults: '**/surefire-reports/*.xml'
+        this.script.junit checksName: 'IT tests', allowEmptyResults: true, skipMarkingBuildUnstable: false, testResults: '**/failsafe-reports/*.xml'
+    }
+
 	def testReport(){
 		this.script.jacoco(execPattern: '**/*.exec')
 		
