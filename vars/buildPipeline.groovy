@@ -96,7 +96,7 @@ def call(Closure body) {
                                     if (fileExists('suppressions.xml')) {
                                         extraBuildArgs += " -DsuppressionFile=suppressions.xml"
                                     }
-                                    sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
+                                    sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pdocker-build -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
                                     helper.junitReport()
                                 }
                             }
@@ -113,7 +113,7 @@ def call(Closure body) {
                                         sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
-                                        sh "mvn clean install -Pdocker-build -DskipTests=true"
+                                        //sh "mvn clean install -Pdocker-build -DskipTests=true"
                                         sh "SPRING_PROFILES=docker,jenkins docker compose up -d"
                                         sleep(90)
                                         sh "mvn -B verify -pl testing/smg-it-tests -am -Dmaven.test.failure.ignore=true -Ddependency-check.skip=true -Pit-tests -Pcicd -Dspring.profiles.active=jenkins"
