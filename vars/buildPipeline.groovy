@@ -99,7 +99,7 @@ def call(Closure body) {
                                     sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
                                     helper.junitReport()
 				    sh "tar -cvf allure.tar target/ | true"
-				    sh "shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* | true"
+				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* | true"
                                 }
                             }
                         }
