@@ -150,11 +150,11 @@ class Helper implements Serializable {
 		this.script.junit checksName: 'Unit tests', allowEmptyResults: true, skipMarkingBuildUnstable: false, testResults: '**/surefire-reports/*.xml'
 		this.script.junit checksName: 'IT tests', allowEmptyResults: true, skipMarkingBuildUnstable: false, testResults: '**/failsafe-reports/*.xml'
 
-		try{
-			this.script.dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-		} catch(Exception ex) {
-			steps.println "Publish dependency check findings got exception " + ex
-		}
+		//try{
+		//	this.script.dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+		//} catch(Exception ex) {
+		//	steps.println "Publish dependency check findings got exception " + ex
+		//}
 		this.script.allure results: [
 			[path: 'target/allure-results']
 		]
