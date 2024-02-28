@@ -97,9 +97,8 @@ def call(Closure body) {
                                         extraBuildArgs += " -DsuppressionFile=suppressions.xml"
                                     }
                                     sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
-                                    helper.junitReport()
-				    sh "tar -cvf allure.tar target/ | true"
-				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* | true"
+                                    //helper.junitReport()
+				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* ./target/* | true"
                                 }
                             }
                         }
@@ -113,7 +112,6 @@ def call(Closure body) {
                                 script {
                                     try {
 					sh "mvn -B clean package -DskipTests=true -Pdocker-build -Pit-tests"
-					sh "tar -xvf allure.tar | true"
 					sh "tar -xvf test-results.tar | true"
                                         sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
@@ -122,7 +120,7 @@ def call(Closure body) {
                                         sh "SPRING_PROFILES=docker,jenkins docker compose up -d"
                                         sleep(90)
                                         sh "mvn -B verify -pl testing/smg-it-tests -am -Dmaven.test.failure.ignore=true -Ddependency-check.skip=true -Pit-tests -Pcicd -Dspring.profiles.active=jenkins"
-                                        helper.junitReport()
+                                        //helper.junitReport()
                                     } finally {
                                         sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
