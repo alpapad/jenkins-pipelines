@@ -98,7 +98,7 @@ def call(Closure body) {
                                     }
                                     sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
                                     helper.junitReport()
-				    //sh "tar -cvf allure.tar target/ | true"
+				    sh "tar -cvf allure.tar target/ | true"
                                 }
                             }
                         }
@@ -112,7 +112,7 @@ def call(Closure body) {
                                 script {
                                     try {
 					sh "mvn -B clean package -DskipTests=true -Pdocker-build -Pit-tests"
-					//sh "tar -xvf allure.tar target/ | true"
+					sh "tar -xvf allure.tar target/ | true"
                                         sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
