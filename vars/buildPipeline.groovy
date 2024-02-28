@@ -92,6 +92,7 @@ def call(Closure body) {
                         steps {
                             lock('tests') {
                                 script{
+				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results-1.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* | true"
                                     def extraBuildArgs = ""
                                     if (fileExists('suppressions.xml')) {
                                         extraBuildArgs += " -DsuppressionFile=suppressions.xml"
