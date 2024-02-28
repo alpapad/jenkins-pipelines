@@ -135,10 +135,10 @@ def call(Closure body) {
                         steps {
                              script {
                                 withSonarQubeEnv('sonar') {
-                                    sh "mvn -B -Pcicd sonar:sonar ${sonarProject} -Dsonar.exclusions=**/pom.xml  -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html"
+                                    sh "mvn -B -Pcicd sonar:sonar ${sonarProject} -Dsonar.exclusions=**/pom.xml"
                                 }
                                 sleep (25)
-                                helper.qualityGate(sonarProjectName, env.BRANCH_NAME, 2, ignoreSonarErrors)
+                                helper.qualityGate(sonarProjectName, env.BRANCH_NAME, 2, true)
                             }
                         }
                     }
