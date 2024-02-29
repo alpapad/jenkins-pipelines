@@ -96,9 +96,10 @@ def call(Closure body) {
                                     if (fileExists('suppressions.xml')) {
                                         extraBuildArgs += " -DsuppressionFile=suppressions.xml"
                                     }
-                                    sh "mvn -B clean verify -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
+                                    sh "mvn -B clean test -U -Dmaven.test.failure.ignore=true -Pcicd -Dsnapshot.build=${snapshot} ${extraBuildArgs}"
                                     //helper.junitReport()
-				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* ./target/* | true"
+				    sh "#!/bin/bash\n shopt -s globstar; tar -cf test-results.tar **/surefire-reports/* **/failsafe-reports/* **/jacoco/* **/allure-results/* | true"
+				    sh "tar -cf allure-results.tar target/ | true"
                                 }
                             }
                         }
@@ -111,8 +112,9 @@ def call(Closure body) {
                             lock('tests') {
                                 script {
                                     try {
-					sh "mvn -B clean package -DskipTests=true -Pdocker-build -Pit-tests"
+					sh "mvn -B clean package -DskipTests=true -Pdocker-build"
 					sh "tar -xvf test-results.tar | true"
+					sh "tar -xvf allure-results.tar | true"
                                         sh "docker compose down -v| true"
                                         sh "docker compose rm | true"
                                         sh "docker volume prune -a -f | true"
